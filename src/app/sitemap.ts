@@ -1,20 +1,30 @@
 import { MetadataRoute } from 'next';
 import prisma from '@/lib/prisma';
+import { getStoreId } from '@/lib/store-config';
+
+export const dynamic = 'force-dynamic';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const storeUrl = process.env.NEXT_PUBLIC_STORE_URL || 'https://sahasrafashion.com';
-  const storeId = process.env.DEFAULT_STORE_ID || 'default-store';
 
-  const [products, categories] = await Promise.all([
-    prisma.product.findMany({
-      where: { storeId, isPublished: true },
-      select: { slug: true, updatedAt: true },
-    }),
-    prisma.category.findMany({
-      where: { storeId, isActive: true },
-      select: { slug: true, updatedAt: true },
-    }),
-  ]);
+  let products: Array<{ slug: string; updatedAt: Date }> = [];
+  let categories: Array<{ slug: string; updatedAt: Date }> = [];
+
+  try {
+    const storeId = await getStoreId();
+    [products, categories] = await Promise.all([
+      prisma.product.findMany({
+        where: { storeId, isPublished: true },
+        select: { slug: true, updatedAt: true },
+      }),
+      prisma.category.findMany({
+        where: { storeId, isActive: true },
+        select: { slug: true, updatedAt: true },
+      }),
+    ]);
+  } catch (error) {
+    console.warn('Failed to load dynamic sitemap records from DB:', error);
+  }
 
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: `${storeUrl}/`, lastModified: new Date(), changeFrequency: 'daily', priority: 1.0 },
