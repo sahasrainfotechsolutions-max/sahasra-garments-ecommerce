@@ -7,6 +7,7 @@ import { ProductGrid } from '@/components/storefront/ProductGrid';
 import { ArrowRight, Sparkles, ShieldCheck, Truck, RefreshCw, Award } from 'lucide-react';
 import { ProductItem } from '@/types';
 
+export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 export default async function HomePage() {
